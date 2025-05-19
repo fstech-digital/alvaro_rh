@@ -1,0 +1,524 @@
+= Documento de Arquitetura - Sistema de Recrutamento e Seleção via WhatsApp
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: highlight.js
+
+== 1. Introdução
+
+Este documento apresenta a arquitetura proposta para o MVP (Produto Minimamente Viável) do sistema de recrutamento e seleção via WhatsApp para as lojas franqueadas do cliente. A arquitetura foi projetada para funcionar localmente, sem dependência de serviços em nuvem AWS, atendendo aos requisitos funcionais e não funcionais identificados.
+
+=== 1.1. Propósito
+
+O propósito deste documento é fornecer uma visão abrangente da arquitetura do sistema, detalhando seus componentes, interações, fluxos de dados e decisões técnicas. Este documento servirá como guia para a equipe de desenvolvimento durante a implementação do MVP.
+
+=== 1.2. Escopo
+
+Este documento abrange a arquitetura completa do MVP local, incluindo:
+
+* Visão geral da arquitetura
+* Componentes principais e suas responsabilidades
+* Fluxos de dados e interações entre componentes
+* Decisões técnicas e justificativas
+* Considerações de segurança, desempenho e escalabilidade
+
+=== 1.3. Definições, Acrônimos e Abreviações
+
+* *MVP*: Produto Minimamente Viável
+* *API*: Interface de Programação de Aplicações
+* *IA*: Inteligência Artificial
+* *LLM*: Large Language Model (Modelo de Linguagem Grande)
+* *LGPD*: Lei Geral de Proteção de Dados
+* *REST*: Representational State Transfer
+* *UI*: Interface do Usuário
+* *UX*: Experiência do Usuário
+
+== 2. Visão Geral da Arquitetura
+
+A arquitetura proposta segue o padrão Hexagonal (também conhecido como Ports and Adapters), que permite isolar o domínio da aplicação das tecnologias externas, facilitando testes, manutenção e futuras adaptações. Esta escolha é particularmente relevante considerando a possibilidade de evolução do MVP para uma versão em nuvem no futuro.
+
+=== 2.1. Representação Arquitetural
+
+[plantuml]
+----
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(candidato, "Candidato", "Pessoa que se candidata à vaga")
+Person(gerente, "Gerente", "Responsável pelo processo seletivo")
+
+System_Boundary(sistema, "Sistema de Recrutamento e Seleção") {
+    Container(whatsapp_adapter, "Adaptador WhatsApp", "Python, Twilio API", "Gerencia a comunicação com WhatsApp")
+    Container(web_ui, "Interface Web", "React, TailwindCSS", "Dashboard para acompanhamento e gestão")
+    Container(landing_page, "Landing Page", "React, TailwindCSS", "Página informativa com chatbot")
+    
+    Container(core_app, "Aplicação Principal", "Python, FastAPI", "Lógica de negócio e orquestração")
+    
+    Container(ia_service, "Serviço de IA", "Python, OpenAI API", "Análise de currículos e respostas")
+    Container(transcription_service, "Serviço de Transcrição", "Python, Assembly AI", "Transcrição de áudios")
+    
+    ContainerDb(database, "Banco de Dados", "SQLite/PostgreSQL", "Armazena dados de candidatos e processos")
+}
+
+Rel(candidato, whatsapp_adapter, "Interage via", "WhatsApp")
+Rel(gerente, web_ui, "Acessa", "HTTPS")
+Rel(candidato, landing_page, "Visita", "HTTPS")
+
+Rel(whatsapp_adapter, core_app, "Envia mensagens e arquivos", "API REST")
+Rel(web_ui, core_app, "Consome dados", "API REST")
+Rel(landing_page, core_app, "Consome dados", "API REST")
+
+Rel(core_app, ia_service, "Solicita análise", "API interna")
+Rel(core_app, transcription_service, "Solicita transcrição", "API interna")
+Rel(core_app, database, "Persiste e consulta dados", "SQL")
+
+Rel(ia_service, database, "Consulta dados para contexto", "SQL")
+@enduml
+----
+
+=== 2.2. Padrões Arquiteturais
+
+* *Arquitetura Hexagonal (Ports and Adapters)*: Separa o núcleo da aplicação das tecnologias externas
+* *Padrão Repository*: Abstrai o acesso a dados
+* *Padrão Service*: Encapsula a lógica de negócio
+* *Padrão Adapter*: Converte interfaces externas para o formato esperado pela aplicação
+* *Padrão Factory*: Cria instâncias de objetos complexos
+* *REST API*: Para comunicação entre componentes
+
+== 3. Componentes da Arquitetura
+
+=== 3.1. Adaptador WhatsApp (WhatsApp Adapter)
+
+==== 3.1.1. Responsabilidades
+* Integrar com a API Twilio para comunicação com WhatsApp
+* Receber e enviar mensagens, áudios e arquivos
+* Converter eventos do WhatsApp para o formato interno da aplicação
+* Gerenciar o estado das conversas
+
+==== 3.1.2. Interfaces
+* *Entrada*: Webhooks da Twilio para recebimento de mensagens
+* *Saída*: API da Twilio para envio de mensagens
+
+==== 3.1.3. Tecnologias
+* Python
+* Twilio API
+* FastAPI (para webhooks)
+
+=== 3.2. Interface Web (Web UI)
+
+==== 3.2.1. Responsabilidades
+* Fornecer dashboard para acompanhamento dos candidatos
+* Visualizar resultados das entrevistas
+* Permitir acesso a áudios, transcrições e avaliações
+* Gerenciar encaminhamento de candidatos para entrevista final
+
+==== 3.2.2. Interfaces
+* *Entrada*: Interações do usuário (gerente)
+* *Saída*: API REST para comunicação com a aplicação principal
+
+==== 3.2.3. Tecnologias
+* React.js
+* TailwindCSS
+* Axios (para requisições HTTP)
+
+=== 3.3. Landing Page
+
+==== 3.3.1. Responsabilidades
+* Apresentar informações sobre o processo seletivo
+* Fornecer chatbot para interação com candidatos
+* Ser responsiva e acessível em diferentes dispositivos
+
+==== 3.3.2. Interfaces
+* *Entrada*: Interações do usuário (candidato)
+* *Saída*: API REST para comunicação com a aplicação principal
+
+==== 3.3.3. Tecnologias
+* React.js
+* TailwindCSS
+* Axios (para requisições HTTP)
+
+=== 3.4. Aplicação Principal (Core App)
+
+==== 3.4.1. Responsabilidades
+* Implementar a lógica de negócio do processo seletivo
+* Orquestrar o fluxo de trabalho entre os componentes
+* Gerenciar o estado dos candidatos no processo
+* Fornecer APIs para os adaptadores externos
+
+==== 3.4.2. Interfaces
+* *Entrada*: APIs REST para comunicação com adaptadores externos
+* *Saída*: Interfaces para serviços internos (IA, transcrição) e banco de dados
+
+==== 3.4.3. Tecnologias
+* Python
+* FastAPI
+* SQLAlchemy (ORM)
+* Pydantic (validação de dados)
+
+=== 3.5. Serviço de IA (IA Service)
+
+==== 3.5.1. Responsabilidades
+* Analisar currículos
+* Analisar respostas transcritas
+* Classificar candidatos
+* Gerar respostas personalizadas
+
+==== 3.5.2. Interfaces
+* *Entrada*: API interna para recebimento de solicitações de análise
+* *Saída*: Resultados de análise em formato estruturado
+
+==== 3.5.3. Tecnologias
+* Python
+* OpenAI API (GPT-4 ou similar)
+* LangChain (para orquestração de LLMs)
+
+=== 3.6. Serviço de Transcrição (Transcription Service)
+
+==== 3.6.1. Responsabilidades
+* Transcrever áudios de candidatos
+* Formatar transcrições para análise
+
+==== 3.6.2. Interfaces
+* *Entrada*: API interna para recebimento de solicitações de transcrição
+* *Saída*: Texto transcrito em formato estruturado
+
+==== 3.6.3. Tecnologias
+* Python
+* Assembly AI API (ou similar)
+
+=== 3.7. Banco de Dados (Database)
+
+==== 3.7.1. Responsabilidades
+* Armazenar dados de candidatos
+* Armazenar transcrições e avaliações
+* Manter o banco de talentos
+* Armazenar configurações do sistema
+
+==== 3.7.2. Interfaces
+* *Entrada/Saída*: SQL para persistência e consulta de dados
+
+==== 3.7.3. Tecnologias
+* SQLite (para desenvolvimento e MVP inicial)
+* PostgreSQL (para produção via Render)
+
+== 4. Fluxos Principais
+
+=== 4.1. Fluxo de Triagem Inicial
+
+[plantuml]
+----
+@startuml
+actor Candidato
+participant "WhatsApp\nAdapter" as WA
+participant "Core App" as CA
+participant "IA Service" as IA
+participant "Database" as DB
+
+Candidato -> WA: Envia mensagem inicial
+WA -> CA: Notifica nova mensagem
+CA -> CA: Cria novo processo
+CA -> WA: Solicita currículo
+Candidato -> WA: Envia currículo
+WA -> CA: Encaminha currículo
+CA -> IA: Solicita análise do currículo
+IA -> CA: Retorna avaliação
+
+alt Candidato aprovado na triagem
+    CA -> DB: Atualiza status (pré-aprovado)
+    CA -> WA: Envia mensagem de aprovação
+    CA -> WA: Inicia fluxo de entrevista
+else Candidato não aprovado
+    CA -> DB: Atualiza status (não aprovado)
+    CA -> WA: Envia mensagem de não aprovação
+    CA -> WA: Pergunta sobre manter dados
+    Candidato -> WA: Responde sobre dados
+    WA -> CA: Encaminha resposta
+    
+    alt Deseja manter dados
+        CA -> DB: Marca para banco de talentos
+        CA -> WA: Confirma armazenamento
+    else Não deseja manter dados
+        CA -> DB: Marca para exclusão
+        CA -> WA: Confirma exclusão futura
+    end
+end
+@enduml
+----
+
+=== 4.2. Fluxo de Entrevista
+
+[plantuml]
+----
+@startuml
+actor Candidato
+participant "WhatsApp\nAdapter" as WA
+participant "Core App" as CA
+participant "Transcription\nService" as TS
+participant "IA Service" as IA
+participant "Database" as DB
+
+CA -> WA: Envia vídeo introdutório
+CA -> DB: Busca perguntas configuradas
+DB -> CA: Retorna perguntas
+CA -> WA: Envia primeira pergunta
+
+loop Para cada pergunta
+    Candidato -> WA: Envia resposta em áudio
+    WA -> CA: Encaminha áudio
+    CA -> TS: Solicita transcrição
+    TS -> CA: Retorna texto transcrito
+    CA -> DB: Armazena áudio e transcrição
+    
+    alt Não é a última pergunta
+        CA -> WA: Envia próxima pergunta
+    else É a última pergunta
+        CA -> IA: Solicita análise completa das respostas
+        IA -> CA: Retorna avaliação final
+        CA -> DB: Atualiza status e avaliação
+        CA -> WA: Envia mensagem de conclusão
+    end
+end
+@enduml
+----
+
+=== 4.3. Fluxo do Dashboard
+
+[plantuml]
+----
+@startuml
+actor Gerente
+participant "Web UI" as UI
+participant "Core App" as CA
+participant "Database" as DB
+
+Gerente -> UI: Acessa dashboard
+UI -> CA: Solicita lista de candidatos
+CA -> DB: Consulta candidatos
+DB -> CA: Retorna dados
+CA -> UI: Envia lista formatada
+UI -> Gerente: Exibe lista de candidatos
+
+Gerente -> UI: Seleciona candidato
+UI -> CA: Solicita detalhes do candidato
+CA -> DB: Consulta detalhes, áudios e avaliações
+DB -> CA: Retorna dados completos
+CA -> UI: Envia detalhes formatados
+UI -> Gerente: Exibe perfil completo
+
+alt Aprova para entrevista final
+    Gerente -> UI: Marca para entrevista final
+    UI -> CA: Notifica aprovação
+    CA -> DB: Atualiza status
+    CA -> UI: Confirma atualização
+    CA -> WA: Envia mensagem ao candidato
+else Rejeita candidato
+    Gerente -> UI: Rejeita candidato
+    UI -> CA: Notifica rejeição
+    CA -> DB: Atualiza status
+    CA -> UI: Confirma atualização
+    CA -> WA: Envia mensagem ao candidato
+end
+@enduml
+----
+
+== 5. Modelo de Dados
+
+=== 5.1. Diagrama de Entidade-Relacionamento
+
+[plantuml]
+----
+@startuml
+entity "Candidato" as candidato {
+  * id : integer <<PK>>
+  --
+  * nome : text
+  * telefone : text
+  * email : text
+  * curriculo_url : text
+  * data_cadastro : datetime
+  * status : text
+  * manter_dados : boolean
+}
+
+entity "ProcessoSeletivo" as processo {
+  * id : integer <<PK>>
+  --
+  * candidato_id : integer <<FK>>
+  * vaga_id : integer <<FK>>
+  * data_inicio : datetime
+  * status : text
+  * avaliacao_curriculo : text
+  * avaliacao_final : text
+  * score_final : float
+}
+
+entity "Pergunta" as pergunta {
+  * id : integer <<PK>>
+  --
+  * texto : text
+  * ordem : integer
+  * ativa : boolean
+}
+
+entity "Resposta" as resposta {
+  * id : integer <<PK>>
+  --
+  * processo_id : integer <<FK>>
+  * pergunta_id : integer <<FK>>
+  * audio_url : text
+  * transcricao : text
+  * avaliacao : text
+  * score : float
+}
+
+entity "Vaga" as vaga {
+  * id : integer <<PK>>
+  --
+  * titulo : text
+  * descricao : text
+  * requisitos : text
+  * ativa : boolean
+}
+
+entity "Usuario" as usuario {
+  * id : integer <<PK>>
+  --
+  * nome : text
+  * email : text
+  * senha : text
+  * perfil : text
+}
+
+candidato ||--o{ processo
+vaga ||--o{ processo
+processo ||--o{ resposta
+pergunta ||--o{ resposta
+@enduml
+----
+
+=== 5.2. Descrição das Entidades
+
+==== 5.2.1. Candidato
+Armazena informações básicas sobre os candidatos que participam do processo seletivo.
+
+==== 5.2.2. ProcessoSeletivo
+Representa um processo seletivo específico para um candidato e uma vaga, incluindo status e avaliações.
+
+==== 5.2.3. Pergunta
+Armazena as perguntas-chave configuradas para o processo seletivo.
+
+==== 5.2.4. Resposta
+Registra as respostas dos candidatos, incluindo áudio, transcrição e avaliação.
+
+==== 5.2.5. Vaga
+Contém informações sobre as vagas disponíveis.
+
+==== 5.2.6. Usuario
+Armazena informações dos usuários do sistema (gerentes, administradores).
+
+== 6. Considerações de Implementação
+
+=== 6.1. Tecnologias Recomendadas
+
+[cols="1,2,2"]
+|===
+|Componente |Tecnologia |Justificativa
+
+|Backend
+|Python + FastAPI
+|Desenvolvimento rápido, alto desempenho, tipagem, documentação automática
+
+|Frontend
+|React.js + TailwindCSS
+|Componentização, reatividade, estilização eficiente
+
+|Banco de Dados
+|SQLite (dev) / PostgreSQL (prod)
+|Simplicidade para desenvolvimento local, robustez para produção
+
+|Integração WhatsApp
+|Twilio API
+|Confiabilidade, documentação, facilidade de integração
+
+|IA
+|OpenAI GPT-4 ou similar
+|Capacidade avançada de processamento de linguagem natural
+
+|Transcrição
+|Assembly AI
+|Precisão na transcrição, suporte a português
+|===
+
+=== 6.2. Estratégia de Implantação
+
+A implantação do MVP seguirá estas etapas:
+
+1. Configuração do ambiente de desenvolvimento local
+2. Implementação do banco de dados e modelos
+3. Desenvolvimento da aplicação principal (Core App)
+4. Implementação dos serviços de IA e transcrição
+5. Desenvolvimento do adaptador WhatsApp
+6. Desenvolvimento da interface web e landing page
+7. Testes integrados
+8. Implantação em ambiente de produção local
+
+=== 6.3. Considerações de Segurança
+
+* Armazenamento seguro de credenciais (variáveis de ambiente)
+* Validação de entrada em todas as APIs
+* Autenticação para acesso ao dashboard
+* Criptografia de dados sensíveis no banco de dados
+* Conformidade com LGPD para tratamento de dados pessoais
+* Logs de auditoria para ações críticas
+
+== 7. Decisões Arquiteturais (ADRs)
+
+=== 7.1. ADR-001: Arquitetura Hexagonal
+
+==== 7.1.1. Contexto
+Precisamos definir uma arquitetura que permita isolar o domínio da aplicação das tecnologias externas, facilitando testes e manutenção.
+
+==== 7.1.2. Decisão
+Adotar a Arquitetura Hexagonal (Ports and Adapters) para o desenvolvimento do sistema.
+
+==== 7.1.3. Consequências
+* *Positivas*: Facilidade de testes, substituição de componentes, manutenção
+* *Negativas*: Curva de aprendizado inicial, mais código boilerplate
+
+=== 7.2. ADR-002: Banco de Dados Local
+
+==== 7.2.1. Contexto
+O MVP deve funcionar localmente, sem dependência de serviços em nuvem.
+
+==== 7.2.2. Decisão
+Utilizar SQLite para desenvolvimento e testes, com possibilidade de migração para PostgreSQL local ou hospedado no Render para produção.
+
+==== 7.2.3. Consequências
+* *Positivas*: Simplicidade, sem necessidade de serviços externos para desenvolvimento
+* *Negativas*: Limitações de concorrência do SQLite, necessidade de migração para produção
+
+== 8. Considerações de Evolução
+
+=== 8.1. Escalabilidade
+
+A arquitetura foi projetada para permitir a evolução do sistema, considerando:
+
+* Separação clara de responsabilidades entre componentes
+* Interfaces bem definidas para facilitar substituições
+* Padrões que permitem adicionar novas funcionalidades com mínimo impacto
+
+=== 8.2. Migração para Nuvem
+
+Embora o MVP seja local, a arquitetura permite uma futura migração para nuvem:
+
+* Os adaptadores podem ser substituídos por versões compatíveis com serviços AWS
+* O banco de dados pode ser migrado para DynamoDB ou RDS
+* Os serviços de IA e transcrição podem ser encapsulados em funções Lambda
+* A API pode ser exposta via API Gateway
+
+== 9. Conclusão
+
+A arquitetura proposta para o MVP do sistema de recrutamento e seleção via WhatsApp atende aos requisitos funcionais e não funcionais identificados, com foco em uma implementação local que permita validar o conceito rapidamente. A adoção de padrões arquiteturais como Hexagonal e Repository facilita a manutenção e evolução do sistema, permitindo futuras expansões e até mesmo migração para nuvem, se desejado.
+
+A separação clara de responsabilidades entre os componentes, com interfaces bem definidas, garante flexibilidade para substituir implementações específicas sem afetar o restante do sistema, o que é particularmente importante para um MVP que pode evoluir significativamente após os primeiros feedbacks de uso real.

@@ -1,0 +1,145 @@
+= Requisitos do Sistema de Recrutamento e Seleção via WhatsApp
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: highlight.js
+
+== Introdução
+
+Este documento apresenta os requisitos funcionais e não funcionais para o desenvolvimento do MVP (Produto Minimamente Viável) do sistema de recrutamento e seleção via WhatsApp para as lojas franqueadas do cliente. O sistema visa automatizar o processo de triagem e seleção de vendedores, utilizando inteligência artificial para análise de currículos e respostas de candidatos.
+
+== Contexto e Objetivo
+
+O objetivo principal é desenvolver uma solução integrada ao WhatsApp para automatizar o processo de recrutamento e seleção de vendedores para as lojas franqueadas do cliente. A solução utilizará inteligência artificial para triagem de candidatos e análise de respostas, substituindo o processo atual que requer intervenção manual, permitindo maior eficiência e assertividade na seleção de candidatos com o perfil adequado para o varejo.
+
+O MVP deve funcionar localmente, sem a utilização de serviços na nuvem AWS, permitindo validar a aplicação prática do conceito de forma rápida, possibilitando ajustes e melhorias futuras com base na experiência real.
+
+== Requisitos Funcionais
+
+=== RF01 - Triagem Inicial via WhatsApp
+* O sistema deve permitir que candidatos entrem em contato com o número indicado no anúncio da vaga
+* O sistema deve receber currículos enviados diretamente pelo WhatsApp
+* O sistema deve realizar análise automatizada do currículo utilizando IA
+* O sistema deve enviar resposta automática aos candidatos não aprovados na triagem inicial
+
+=== RF02 - Entrevista com Candidatos Pré-Aprovados
+* O sistema deve enviar mensagem/vídeo introdutório explicando o processo para candidatos pré-aprovados
+* O sistema deve enviar as 7 perguntas-chave definidas pelo cliente
+* O sistema deve permitir que o candidato responda por áudio (eliminando a limitação de redação)
+* O sistema deve realizar transcrição automática dos áudios recebidos
+* O sistema deve analisar as respostas transcritas utilizando IA treinada
+
+=== RF03 - Dashboard de Acompanhamento
+* O sistema deve fornecer uma interface web para acompanhamento dos candidatos
+* O sistema deve apresentar visualização dos resultados das entrevistas
+* O sistema deve permitir acesso aos áudios, transcrições e avaliações
+* O sistema deve permitir o encaminhamento dos candidatos aprovados para entrevista final com o gerente
+
+=== RF04 - Landing Page
+* O sistema deve disponibilizar uma landing page com informações sobre o processo seletivo
+* A landing page deve conter um chatbot que utilize o mesmo motor de IA do WhatsApp
+* A landing page deve ser responsiva e acessível em diferentes dispositivos
+
+=== RF05 - Banco de Talentos
+* O sistema deve criar e manter um banco de talentos com os dados dos candidatos
+* O sistema deve permitir que candidatos não aprovados optem por manter ou remover seus dados do banco de talentos
+* O sistema deve permitir consulta e filtragem no banco de talentos
+
+=== RF06 - Administração e Configuração
+* O sistema deve permitir a configuração das perguntas-chave a serem realizadas
+* O sistema deve permitir ajustes nos critérios de avaliação utilizados pela IA
+* O sistema deve permitir a personalização das mensagens automáticas enviadas aos candidatos
+
+== Requisitos Não Funcionais
+
+=== RNF01 - Arquitetura Local
+* O sistema deve funcionar localmente, sem utilização de serviços na nuvem AWS (Lambda, API Gateway, DynamoDB, S3, SQS, SNS e CloudWatch)
+* O sistema deve ser instalável em ambiente local do cliente
+
+=== RNF02 - Desempenho
+* O sistema deve suportar o processamento de múltiplas conversas simultâneas via WhatsApp
+* O sistema deve realizar a transcrição de áudio e análise de respostas em tempo aceitável (máximo 2 minutos)
+* O dashboard deve carregar em menos de 3 segundos
+
+=== RNF03 - Segurança e Privacidade
+* O sistema deve implementar protocolos de conformidade com LGPD
+* O sistema deve garantir a segurança dos dados dos candidatos
+* O sistema deve permitir que candidatos solicitem a exclusão de seus dados
+
+=== RNF04 - Usabilidade
+* A interface do dashboard deve ser intuitiva e de fácil utilização
+* O fluxo de conversa no WhatsApp deve ser natural e compreensível
+* O sistema deve fornecer feedback claro aos candidatos sobre cada etapa do processo
+
+=== RNF05 - Manutenibilidade
+* O código deve seguir boas práticas de desenvolvimento e padrões de projeto
+* O sistema deve ser modular, permitindo a adição de novas funcionalidades
+* O sistema deve incluir documentação técnica e manual de utilização
+
+=== RNF06 - Integração
+* O sistema deve integrar-se com a API do WhatsApp via Twilio
+* O sistema deve integrar-se com serviços de IA para processamento de linguagem natural
+* O sistema deve permitir a exportação de dados em formato CSV
+
+=== RNF07 - Escalabilidade
+* A arquitetura deve permitir futuras expansões e melhorias
+* O sistema deve ser projetado para suportar aumento de volume de candidatos sem degradação significativa
+
+== Restrições Técnicas
+
+* O MVP deve funcionar localmente, sem utilização de serviços AWS
+* Backend: Python com FastAPI
+* Frontend (Dashboard): React.js com TailwindCSS
+* Integração WhatsApp: API Twilio
+* Processamento de Linguagem Natural: OpenAI GPT-4 ou similar
+* Transcrição de Áudio: Assembly AI ou similar
+* Banco de Dados: SQLite (local) ou PostgreSQL (Render)
+
+== Fluxo Principal da Solução
+
+[plantuml]
+----
+@startuml
+actor Candidato
+actor Gerente
+participant "WhatsApp" as WA
+participant "Sistema" as SYS
+participant "IA" as AI
+participant "Dashboard" as DASH
+
+Candidato -> WA : Envia mensagem para número da vaga
+WA -> SYS : Recebe mensagem
+SYS -> Candidato : Solicita currículo
+Candidato -> WA : Envia currículo
+WA -> SYS : Recebe currículo
+SYS -> AI : Analisa currículo
+AI -> SYS : Retorna avaliação
+
+alt Candidato não aprovado na triagem
+    SYS -> Candidato : Envia mensagem de não aprovação
+    SYS -> Candidato : Pergunta se deseja manter dados para futuras vagas
+else Candidato aprovado na triagem
+    SYS -> Candidato : Envia vídeo introdutório
+    SYS -> Candidato : Envia perguntas-chave
+    Candidato -> WA : Responde perguntas por áudio
+    WA -> SYS : Recebe áudios
+    SYS -> AI : Transcreve e analisa respostas
+    AI -> SYS : Retorna avaliação
+    SYS -> DASH : Atualiza dashboard com resultados
+    Gerente -> DASH : Acessa resultados e avaliações
+    
+    alt Candidato aprovado na entrevista
+        Gerente -> DASH : Marca entrevista final
+        SYS -> Candidato : Agenda entrevista final
+    else Candidato não aprovado na entrevista
+        SYS -> Candidato : Envia mensagem de não aprovação
+        SYS -> Candidato : Pergunta se deseja manter dados para futuras vagas
+    end
+end
+@enduml
+----
+
+== Conclusão
+
+Os requisitos apresentados neste documento servirão como base para o desenvolvimento da arquitetura do sistema de recrutamento e seleção via WhatsApp. O MVP local permitirá validar o conceito e a eficácia da solução antes de possíveis expansões futuras.

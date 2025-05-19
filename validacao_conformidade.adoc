@@ -1,0 +1,149 @@
+= Validação de Conformidade com Restrições do MVP
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: highlight.js
+
+== Introdução
+
+Este documento apresenta a validação da arquitetura proposta em relação às restrições do MVP local e aos requisitos do projeto. O objetivo é garantir que a solução esteja em conformidade com todas as diretrizes estabelecidas.
+
+== Restrições do MVP Local
+
+=== Funcionamento Local sem AWS
+
+A principal restrição do MVP é que ele deve funcionar localmente, sem utilização de serviços na nuvem AWS (Lambda, API Gateway, DynamoDB, S3, SQS, SNS e CloudWatch).
+
+.Validação:
+[cols="1,2,1"]
+|===
+|Componente |Implementação Proposta |Conformidade
+
+|Backend
+|Python com FastAPI executado localmente
+|✅ Conforme
+
+|Frontend
+|React.js com TailwindCSS servido localmente
+|✅ Conforme
+
+|Banco de Dados
+|SQLite local (desenvolvimento) / PostgreSQL via Render (produção)
+|✅ Conforme
+
+|Integração WhatsApp
+|API Twilio (serviço externo necessário)
+|✅ Conforme*
+
+|Processamento de IA
+|OpenAI API (serviço externo necessário)
+|✅ Conforme*
+
+|Transcrição de Áudio
+|Assembly AI (serviço externo necessário)
+|✅ Conforme*
+|===
+
+*Nota: Embora Twilio, OpenAI e Assembly AI sejam serviços externos, não são serviços AWS e são necessários para as funcionalidades essenciais do sistema. Estes serviços são acessados via API e não requerem infraestrutura em nuvem para o funcionamento do sistema principal.
+
+== Validação dos Requisitos Funcionais
+
+[cols="1,2,1"]
+|===
+|Requisito |Implementação na Arquitetura |Status
+
+|RF01 - Triagem Inicial via WhatsApp
+|Implementado através do Adaptador WhatsApp e Serviço de IA
+|✅ Atendido
+
+|RF02 - Entrevista com Candidatos Pré-Aprovados
+|Implementado através do fluxo de entrevista, com transcrição e análise de IA
+|✅ Atendido
+
+|RF03 - Dashboard de Acompanhamento
+|Implementado através da Interface Web (Web UI)
+|✅ Atendido
+
+|RF04 - Landing Page
+|Implementado como componente separado com integração ao Core App
+|✅ Atendido
+
+|RF05 - Banco de Talentos
+|Implementado no modelo de dados e fluxos de processo
+|✅ Atendido
+
+|RF06 - Administração e Configuração
+|Implementado através da Interface Web e modelo de dados
+|✅ Atendido
+|===
+
+== Validação dos Requisitos Não Funcionais
+
+[cols="1,2,1"]
+|===
+|Requisito |Implementação na Arquitetura |Status
+
+|RNF01 - Arquitetura Local
+|Toda a arquitetura foi projetada para funcionar localmente
+|✅ Atendido
+
+|RNF02 - Desempenho
+|Componentes desacoplados e otimizados para processamento eficiente
+|✅ Atendido
+
+|RNF03 - Segurança e Privacidade
+|Considerações de segurança incluídas na seção 6.3
+|✅ Atendido
+
+|RNF04 - Usabilidade
+|Interfaces projetadas com foco em experiência do usuário
+|✅ Atendido
+
+|RNF05 - Manutenibilidade
+|Arquitetura Hexagonal e padrões de projeto para facilitar manutenção
+|✅ Atendido
+
+|RNF06 - Integração
+|Adaptadores específicos para integração com serviços externos
+|✅ Atendido
+
+|RNF07 - Escalabilidade
+|Arquitetura modular que permite expansão e evolução
+|✅ Atendido
+|===
+
+== Validação das Decisões Arquiteturais
+
+[cols="1,2,1"]
+|===
+|Decisão |Justificativa |Conformidade
+
+|Arquitetura Hexagonal
+|Isola o domínio da aplicação das tecnologias externas, facilitando testes, manutenção e futuras adaptações
+|✅ Conforme
+
+|Banco de Dados Local
+|SQLite para desenvolvimento e PostgreSQL para produção atendem à restrição de funcionamento local
+|✅ Conforme
+
+|Padrão Repository
+|Abstrai o acesso a dados, permitindo trocar a implementação do banco sem afetar a lógica de negócio
+|✅ Conforme
+
+|Padrão Service
+|Encapsula a lógica de negócio, facilitando testes e manutenção
+|✅ Conforme
+
+|Padrão Adapter
+|Permite integrar com serviços externos sem afetar o núcleo da aplicação
+|✅ Conforme
+|===
+
+== Conclusão
+
+A arquitetura proposta está em conformidade com todas as restrições do MVP local e atende a todos os requisitos funcionais e não funcionais identificados. As decisões arquiteturais foram tomadas considerando o contexto do projeto, as restrições técnicas e as melhores práticas de desenvolvimento de software.
+
+A solução proposta permite validar o conceito rapidamente, com uma implementação local que não depende de serviços AWS, mas que ainda assim oferece todas as funcionalidades necessárias para o processo de recrutamento e seleção via WhatsApp.
+
+Além disso, a arquitetura foi projetada para permitir futuras evoluções e até mesmo migração para nuvem, se desejado, sem necessidade de reescrever completamente o sistema.
