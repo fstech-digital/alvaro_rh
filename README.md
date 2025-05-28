@@ -2,7 +2,7 @@
   <img src="./recrutamento-frontend/public/logo.png" width="160" alt="World Tennis Logo" />
 </p>
 
-<h1 align="center">IA Pé no Chão</h1>
+<h1 align="center">IA Chão de Loja</h1>
 <p align="center">
   Projeto de Recrutamento Automatizado com Inteligência Artificial para a World Tennis
 </p>
@@ -15,7 +15,7 @@
 
 ## 🧾 Descrição Geral
 
-O **IA Pé no Chão** é uma solução integrada de recrutamento automatizado desenvolvida para a World Tennis. O sistema permite a gestão de vagas por meio de um painel web e a candidatura via WhatsApp, utilizando inteligência artificial para análise de currículos.
+O **IA Chão de Loja** é uma solução integrada de recrutamento automatizado desenvolvida para a World Tennis. O sistema permite a gestão de vagas por meio de um painel web e a candidatura via WhatsApp, utilizando inteligência artificial para análise de currículos.
 
 ---
 
