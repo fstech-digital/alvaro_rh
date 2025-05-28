@@ -46,7 +46,7 @@ Este projeto tem como objetivo a construção de uma API RESTful utilizando o fr
 git clone https://github.com/fstech-digital/alvaro_rh.git
 
 # Entrar na pasta do projeto
-cd alvaro_rh
+cd alvaro_rh/recrutamento-backend
 
 # Instalar as dependências
 npm install
@@ -63,6 +63,7 @@ npm run start:prod
 ```
 
 ## 🧪 Testes
+
 ```bash
 # Testes unitários
 npm run test
@@ -76,5 +77,6 @@ npm run test:cov
 ```
 
 ## 🧭 Diagrama de Fluxo
+
 ![Conexões](/docs/Diagramas/Fluxograma%201.png)
 ![Mensagens](/docs/Diagramas/Fluxograma%202.png)
