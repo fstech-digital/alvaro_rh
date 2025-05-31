@@ -76,6 +76,15 @@ npm run test:cov
 
 ```
 
+## 📘 Documentação da API
+
+Acesse a documentação interativa da API gerada com Swagger:
+
+👉 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)
+
+Inclui autenticação via Bearer Token (JWT).
+
+
 ## 🧭 Diagrama de Fluxo
 
 ![Conexões](/docs/Diagramas/Fluxograma%201.png)
