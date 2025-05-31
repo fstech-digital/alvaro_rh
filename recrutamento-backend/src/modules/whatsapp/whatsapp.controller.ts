@@ -1,11 +1,13 @@
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from '../user/user.service';
+import { WhatsAppSenderService } from './whatsapp-sender.service';
 
 @Controller('whatsapp')
 export class WhatsAppController {
     constructor(
         private readonly userService: UserService,
+        private readonly whatsappSender: WhatsAppSenderService,
     ) {}
 
     @Post('webhook')
@@ -33,7 +35,9 @@ export class WhatsAppController {
             ProfileName: body.ProfileName,
             WaId: body.WaId,
         });
-        
+
+        // Enviar resposta automática
+        await this.whatsappSender.sendMessage(body.WaId, `Olá, ${body.ProfileName || 'usuário'}! Recebemos sua mensagem. Em breve retornaremos.`);
 
         res.status(200).send('<Response></Response>');
     }
