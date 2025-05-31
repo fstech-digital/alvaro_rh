@@ -119,8 +119,8 @@ export function AppSidebar({ role = "user", ...props }: AppSidebarProps) {
                 <Image
                   src="/logo.png"
                   alt="Logo World Tennis"
-                  width={72}
-                  height={72}
+                  width={50}
+                  height={50}
                   className="rounded-md bg-white "
                 />
                 <div className="grid text-left text-sm leading-tight">
