@@ -1,8 +1,15 @@
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { Response } from 'express';
+import { UserService } from '../user/user.service';
+import { WhatsAppSenderService } from './whatsapp-sender.service';
 
 @Controller('whatsapp')
 export class WhatsAppController {
+    constructor(
+        private readonly userService: UserService,
+        private readonly whatsappSender: WhatsAppSenderService,
+    ) {}
+
     @Post('webhook')
     async handleIncoming(@Body() body: any, @Res() res: Response) {
         console.log('📩 [Webhook Recebido]');
@@ -21,6 +28,16 @@ export class WhatsAppController {
                 console.log(`- [${body[`MediaContentType${i}`]}] ${body[`MediaUrl${i}`]}`);
             }
         }
+
+        // Chama o service para buscar ou criar o usuário
+        await this.userService.findOrCreate({
+            AccountSid: body.AccountSid,
+            ProfileName: body.ProfileName,
+            WaId: body.WaId,
+        });
+
+        // Enviar resposta automática
+        await this.whatsappSender.sendMessage(body.WaId, `Olá, ${body.ProfileName || 'usuário'}! Recebemos sua mensagem. Em breve retornaremos.`);
 
         res.status(200).send('<Response></Response>');
     }
