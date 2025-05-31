@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { UserModule } from './modules/user/user.module';
+import { VagasModule } from './modules/vagas/vagas.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,7 +17,9 @@ import { UserModule } from './modules/user/user.module';
       inject: [ConfigService],
     }),
     WhatsappModule,
-    UserModule
+    UserModule,
+    VagasModule,
+    AuthModule,
   ],
 })
 export class AppModule { }
