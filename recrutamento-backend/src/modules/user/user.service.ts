@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from './user.schema';
+import { userWhatsapp, UserDocument } from './user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(userWhatsapp.name) private userModel: Model<UserDocument>) {}
 
   async findOrCreate(data: {
     ProfileName: string;
     WaId: string;
     AccountSid: string;
-  }): Promise<User> {
+  }): Promise<userWhatsapp> {
     const now = new Date();
 
     const user = await this.userModel.findOneAndUpdate(
