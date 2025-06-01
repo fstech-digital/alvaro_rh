@@ -12,7 +12,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiQuery, ApiParam }
 @UseGuards(JwtAuthGuard)
 @Controller('vagas')
 export class VagasController {
-  constructor(private readonly vagasService: VagasService) {}
+  constructor(private readonly vagasService: VagasService) { }
 
   @Post()
   @ApiOperation({ summary: 'Criar nova vaga' })
@@ -26,7 +26,9 @@ export class VagasController {
   @ApiQuery({ name: 'ativo', required: false, type: Boolean, description: 'Filtrar por vagas ativas (true/false)' })
   @ApiResponse({ status: 200, description: 'Lista de vagas retornada com sucesso' })
   async findAll(@Query('ativo') ativo?: string) {
-    return this.vagasService.findAll(ativo === 'true');
+    return this.vagasService.findAll(
+      ativo === undefined ? undefined : ativo === 'true'
+    );
   }
 
   @Get(':id')
