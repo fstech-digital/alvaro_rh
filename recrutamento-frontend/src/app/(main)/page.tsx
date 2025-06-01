@@ -1,10 +1,24 @@
-export default function Home() {
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+
+export default function DebugToken() {
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session?.accessToken) {
+      console.log("🔐 Copie este token para testar no Insomnia:");
+      console.log(session.accessToken);
+    }
+  }, [session]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24 text-worldtennis-dark bg-white rounded-xl">
-      <h1 className="text-4xl font-bold">Welcome to the Next.js App!</h1>
-      <p className="mt-4 text-lg">
-        This is a simple example of a Next.js application.
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-2xl font-bold mb-4">Debug Token</h1>
+      <p className="text-gray-700">
+        Verifique o console do navegador para o token de acesso.
       </p>
-    </main>
+    </div>
   );
 }

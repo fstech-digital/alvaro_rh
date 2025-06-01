@@ -7,7 +7,7 @@ import { UpdateVagaDto } from './dto/update-vaga.dto';
 
 @Injectable()
 export class VagasService {
-  constructor(@InjectModel(Vaga.name) private vagaModel: Model<Vaga>) {}
+  constructor(@InjectModel(Vaga.name) private vagaModel: Model<Vaga>) { }
 
   async create(createDto: CreateVagaDto, userId: string): Promise<Vaga> {
     const vaga = new this.vagaModel({
